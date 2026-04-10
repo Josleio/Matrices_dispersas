@@ -3,14 +3,11 @@
 #include <iostream>
 using namespace std;
 
-const int N       = 5;
-const int MAX_NNZ = N * N;
-
 class MatrizCSC {
 private:
-    int valores[MAX_NNZ];
-    int ind_fila[MAX_NNZ];
-    int ptr_col[N + 1];
+    int valores[25];
+    int ind_fila[25];
+    int ptr_col[6];
     int nnz;
 
     /* buscarIndice(f, c):
@@ -18,7 +15,7 @@ private:
      *     si ind_fila[k] == f -> return k
      *   return -1 */
     int buscarIndice(int f, int c) const {
-        if (c < 0 || c >= N) return -1;
+        if (c < 0 || c >= 5) return -1;
         for (int k = ptr_col[c]; k < ptr_col[c + 1]; k++)
             if (ind_fila[k] == f) return k;
         return -1;
@@ -35,11 +32,11 @@ private:
     }
 
     /* columnaDeIndice(k):
-     *   para c de 0 a N-1
+     *   para c de 0 a 4
      *     si ptr_col[c] <= k < ptr_col[c+1] -> return c
      *   return -1 */
     int columnaDeIndice(int k) const {
-        for (int c = 0; c < N; c++)
+        for (int c = 0; c < 5; c++)
             if (k >= ptr_col[c] && k < ptr_col[c + 1]) return c;
         return -1;
     }
@@ -48,7 +45,7 @@ private:
      *   col = columnaDeIndice(k)
      *   para i de k a nnz-2: valores[i]=valores[i+1]; ind_fila[i]=ind_fila[i+1]
      *   nnz--
-     *   para j de col+1 a N: ptr_col[j]-- */
+     *   para i de col+1 a 5: ptr_col[i]-- */
     void eliminarIndice(int k) {
         int col = columnaDeIndice(k);
         for (int i = k; i < nnz - 1; i++) {
@@ -56,27 +53,27 @@ private:
             ind_fila[i] = ind_fila[i + 1];
         }
         nnz--;
-        for (int j = col + 1; j <= N; j++) ptr_col[j]--;
+        for (int i = col + 1; i <= 5; i++) ptr_col[i]--;
     }
 
 public:
     MatrizCSC() : nnz(0) {
-        for (int i = 0; i <= N; i++) ptr_col[i] = 0;
+        for (int i = 0; i <= 5; i++) ptr_col[i] = 0;
     }
 
     /* inicializar(m):
      *   ptr_col[0] = 0
-     *   para c de 0 a N-1
+     *   para c de 0 a 4
      *     ptr_col[c+1] = ptr_col[c]
-     *     para f de 0 a N-1
+     *     para f de 0 a 4
      *       si m[f][c] != 0
      *         valores[nnz]=m[f][c]; ind_fila[nnz]=f; nnz++; ptr_col[c+1]++ */
-    void inicializar(int m[N][N]) {
+    void inicializar(int m[5][5]) {
         nnz = 0;
         ptr_col[0] = 0;
-        for (int c = 0; c < N; c++) {
+        for (int c = 0; c < 5; c++) {
             ptr_col[c + 1] = ptr_col[c];
-            for (int f = 0; f < N; f++) {
+            for (int f = 0; f < 5; f++) {
                 if (m[f][c] != 0) {
                     valores[nnz]  = m[f][c];
                     ind_fila[nnz] = f;
@@ -88,14 +85,14 @@ public:
     }
 
     /* insertarOrdenado(v, f, c):
-     *   si nnz >= MAX_NNZ o (f,c) ya existe -> return false
+     *   si nnz >= 25 o (f,c) ya existe -> return false
      *   pos = ptr_col[c+1]
      *   para k de ptr_col[c] a ptr_col[c+1]-1: si ind_fila[k]>f -> pos=k; break
      *   desplazar derecha desde pos
      *   valores[pos]=v; ind_fila[pos]=f; nnz++
-     *   para i de c+1 a N: ptr_col[i]++ */
+     *   para i de c+1 a 5: ptr_col[i]++ */
     bool insertarOrdenado(int v, int f, int c) {
-        if (nnz >= MAX_NNZ || buscarIndice(f, c) != -1) return false;
+        if (nnz >= 25 || buscarIndice(f, c) != -1) return false;
         int pos = ptr_col[c + 1];
         for (int k = ptr_col[c]; k < ptr_col[c + 1]; k++) {
             if (ind_fila[k] > f) { pos = k; break; }
@@ -107,7 +104,7 @@ public:
         valores[pos]  = v;
         ind_fila[pos] = f;
         nnz++;
-        for (int j = c + 1; j <= N; j++) ptr_col[j]++;
+        for (int i = c + 1; i <= 5; i++) ptr_col[i]++;
         return true;
     }
 
@@ -133,23 +130,11 @@ public:
         return true;
     }
 
-    /* intercambiarPorPosicion(f1,c1, f2,c2):
-     *   k1=buscarIndice(f1,c1); k2=buscarIndice(f2,c2)
-     *   si alguno == -1 -> return false
-     *   tmp=valores[k1]; valores[k1]=valores[k2]; valores[k2]=tmp */
-    bool intercambiarPorPosicion(int f1, int c1, int f2, int c2) {
-        int k1 = buscarIndice(f1, c1);
-        int k2 = buscarIndice(f2, c2);
-        if (k1 == -1 || k2 == -1) return false;
-        int tmp = valores[k1]; valores[k1] = valores[k2]; valores[k2] = tmp;
-        return true;
-    }
-
-    /* sustituirValor(f, c, nv):
+    /* sustituirPorPosicion(f, c, nv):
      *   k = buscarIndice(f, c)
      *   si k == -1 -> return false
      *   valores[k] = nv */
-    bool sustituirValor(int f, int c, int nv) {
+    bool sustituirPorPosicion(int f, int c, int nv) {
         int k = buscarIndice(f, c);
         if (k == -1) return false;
         valores[k] = nv;
@@ -157,7 +142,7 @@ public:
     }
 
     /* sumar(B) -> R:
-     *   para c de 0 a N-1
+     *   para c de 0 a 4
      *     ia=ptr_col[c], ib=B.ptr_col[c]
      *     mientras ia < ptr_col[c+1] o ib < B.ptr_col[c+1]
      *       si fila_a < fila_b -> R.insertar(valores[ia], fila_a, c); ia++
@@ -165,12 +150,12 @@ public:
      *       sino suma = valores[ia]+B.valores[ib]; si != 0 -> R.insertar(suma,...); ia++; ib++ */
     MatrizCSC sumar(const MatrizCSC& B) const {
         MatrizCSC R;
-        for (int c = 0; c < N; c++) {
+        for (int c = 0; c < 5; c++) {
             int ia = ptr_col[c],   ib = B.ptr_col[c];
             int ea = ptr_col[c+1], eb = B.ptr_col[c+1];
             while (ia < ea || ib < eb) {
-                int fa = (ia < ea) ? ind_fila[ia] : N;
-                int fb = (ib < eb) ? B.ind_fila[ib] : N;
+                int fa = (ia < ea) ? ind_fila[ia] : 5;
+                int fb = (ib < eb) ? B.ind_fila[ib] : 5;
                 if (fa < fb)      { R.insertarOrdenado(valores[ia],   fa, c); ia++; }
                 else if (fb < fa) { R.insertarOrdenado(B.valores[ib], fb, c); ib++; }
                 else {
@@ -188,12 +173,12 @@ public:
      *   y para solo-B: insertar -B.valores[ib] */
     MatrizCSC restar(const MatrizCSC& B) const {
         MatrizCSC R;
-        for (int c = 0; c < N; c++) {
+        for (int c = 0; c < 5; c++) {
             int ia = ptr_col[c],   ib = B.ptr_col[c];
             int ea = ptr_col[c+1], eb = B.ptr_col[c+1];
             while (ia < ea || ib < eb) {
-                int fa = (ia < ea) ? ind_fila[ia] : N;
-                int fb = (ib < eb) ? B.ind_fila[ib] : N;
+                int fa = (ia < ea) ? ind_fila[ia] : 5;
+                int fb = (ib < eb) ? B.ind_fila[ib] : 5;
                 if (fa < fb)      { R.insertarOrdenado(valores[ia],    fa, c); ia++; }
                 else if (fb < fa) { R.insertarOrdenado(-B.valores[ib], fb, c); ib++; }
                 else {
@@ -214,13 +199,13 @@ public:
         for (int i = 0; i < nnz; i++) cout << (i ? ", " : "") << ind_fila[i];
         cout << "]\n";
         cout << "ptr_col  : [";
-        for (int i = 0; i <= N; i++) cout << (i ? ", " : "") << ptr_col[i];
+        for (int i = 0; i <= 5; i++) cout << (i ? ", " : "") << ptr_col[i];
         cout << "]\n";
     }
 
     void imprimirMatriz() const {
-        for (int f = 0; f < N; f++) {
-            for (int c = 0; c < N; c++) {
+        for (int f = 0; f < 5; f++) {
+            for (int c = 0; c < 5; c++) {
                 int k = buscarIndice(f, c);
                 cout << (c ? "  " : "") << (k != -1 ? valores[k] : 0);
             }
@@ -230,7 +215,7 @@ public:
 };
 
 int main() {
-    int matrix[N][N] = {
+    int matrix[5][5] = {
         {0,0,5,1,0},
         {0,0,0,8,0},
         {0,0,0,0,0},
@@ -254,16 +239,12 @@ int main() {
     cout << "\neliminarPorValor(8):\n";
     A.imprimir();
 
-    A.intercambiarPorPosicion(0, 2, 3, 0);
-    cout << "\nintercambiarPorPosicion(0,2, 3,0):\n";
-    A.imprimir();
-
-    A.sustituirValor(3, 0, 99);
-    cout << "\nsustituirValor(3,0, 99):\n";
+    A.sustituirPorPosicion(0, 2, 99);
+    cout << "\nsustituirPorPosicion(0,2, 99):\n";
     A.imprimir();
 
     cout << "\n=== Suma y Resta CSC ===\n";
-    int matrix2[N][N] = {
+    int matrix2[5][5] = {
         {0,0,3,0,0},
         {0,0,0,2,0},
         {0,0,0,0,0},

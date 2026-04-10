@@ -3,14 +3,11 @@
 #include <iostream>
 using namespace std;
 
-const int N     = 5;
-const int MAX_NNZ = N * N;
-
 class MatrizArrays {
 private:
-    int valores[MAX_NNZ];
-    int filas[MAX_NNZ];
-    int columnas[MAX_NNZ];
+    int valores[25];
+    int filas[25];
+    int columnas[25];
     int count;
 
     /* buscarPosicion(f, c):
@@ -59,24 +56,24 @@ public:
     MatrizArrays() : count(0) {}
 
     /* inicializar(m):
-     *   para f de 0 a N-1
-     *     para c de 0 a N-1
+     *   para f de 0 a 4
+     *     para c de 0 a 4
      *       si m[f][c] != 0 -> insertarOrdenado(m[f][c], f, c) */
-    void inicializar(int m[N][N]) {
-        for (int f = 0; f < N; f++)
-            for (int c = 0; c < N; c++)
+    void inicializar(int m[5][5]) {
+        for (int f = 0; f < 5; f++)
+            for (int c = 0; c < 5; c++)
                 if (m[f][c] != 0)
                     insertarOrdenado(m[f][c], f, c);
     }
 
     /* insertarOrdenado(v, f, c):
-     *   si count >= MAX_NNZ o (f,c) ya existe -> return false
+     *   si count >= 25 o (f,c) ya existe -> return false
      *   pos = count
      *   para i de 0 a count-1: si (filas[i],col[i]) > (f,c) -> pos=i; break
      *   desplazarDerecha(pos)
      *   valores[pos]=v; filas[pos]=f; columnas[pos]=c; count++ */
     bool insertarOrdenado(int v, int f, int c) {
-        if (count >= MAX_NNZ || buscarPosicion(f, c) != -1) return false;
+        if (count >= 25 || buscarPosicion(f, c) != -1) return false;
         int pos = count;
         for (int i = 0; i < count; i++) {
             if (filas[i] > f || (filas[i] == f && columnas[i] > c)) { pos = i; break; }
@@ -111,23 +108,11 @@ public:
         return true;
     }
 
-    /* intercambiarPorPosicion(f1,c1, f2,c2):
-     *   idx1 = buscarPosicion(f1,c1); idx2 = buscarPosicion(f2,c2)
-     *   si alguno == -1 -> return false
-     *   tmp=valores[idx1]; valores[idx1]=valores[idx2]; valores[idx2]=tmp */
-    bool intercambiarPorPosicion(int f1, int c1, int f2, int c2) {
-        int idx1 = buscarPosicion(f1, c1);
-        int idx2 = buscarPosicion(f2, c2);
-        if (idx1 == -1 || idx2 == -1) return false;
-        int tmp = valores[idx1]; valores[idx1] = valores[idx2]; valores[idx2] = tmp;
-        return true;
-    }
-
-    /* sustituirValor(f, c, nv):
+    /* sustituirPorPosicion(f, c, nv):
      *   idx = buscarPosicion(f, c)
      *   si idx == -1 -> return false
      *   valores[idx] = nv */
-    bool sustituirValor(int f, int c, int nv) {
+    bool sustituirPorPosicion(int f, int c, int nv) {
         int idx = buscarPosicion(f, c);
         if (idx == -1) return false;
         valores[idx] = nv;
@@ -142,7 +127,7 @@ public:
 };
 
 int main() {
-    int matrix[N][N] = {
+    int matrix[5][5] = {
         {0,0,5,1,0},
         {0,0,0,8,0},
         {0,0,0,0,0},
@@ -164,12 +149,8 @@ int main() {
     cout << "eliminarPorValor(8):\n";
     matriz.imprimir();
 
-    matriz.intercambiarPorPosicion(0, 2, 3, 0);
-    cout << "intercambiarPorPosicion(0,2, 3,0):\n";
-    matriz.imprimir();
-
-    matriz.sustituirValor(3, 0, 99);
-    cout << "sustituirValor(3,0, 99):\n";
+    matriz.sustituirPorPosicion(0, 2, 99);
+    cout << "sustituirPorPosicion(0,2, 99):\n";
     matriz.imprimir();
 
     return 0;

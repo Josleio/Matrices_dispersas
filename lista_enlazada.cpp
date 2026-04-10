@@ -3,8 +3,6 @@
 #include <iostream>
 using namespace std;
 
-const int N = 5;
-
 struct Nodo {
     int valor, fila, columna;
     Nodo* siguiente;
@@ -31,12 +29,12 @@ public:
     }
 
     /* inicializar(m):
-     *   para f de 0 a N-1
-     *     para c de 0 a N-1
+     *   para f de 0 a 4
+     *     para c de 0 a 4
      *       si m[f][c] != 0 -> insertarOrdenado(m[f][c], f, c) */
-    void inicializar(int m[N][N]) {
-        for (int f = 0; f < N; f++)
-            for (int c = 0; c < N; c++)
+    void inicializar(int m[5][5]) {
+        for (int f = 0; f < 5; f++)
+            for (int c = 0; c < 5; c++)
                 if (m[f][c] != 0)
                     insertarOrdenado(m[f][c], f, c);
     }
@@ -114,29 +112,11 @@ public:
         return false;
     }
 
-    /* intercambiarPorPosicion(f1,c1, f2,c2):
-     *   nodo1 = null; nodo2 = null
-     *   recorrer lista buscando (f1,c1) y (f2,c2)
-     *   si alguno es null -> return false
-     *   tmp = nodo1->valor; nodo1->valor = nodo2->valor; nodo2->valor = tmp */
-    bool intercambiarPorPosicion(int f1, int c1, int f2, int c2) {
-        Nodo* nodo1 = nullptr; Nodo* nodo2 = nullptr;
-        ventana = cabeza;
-        while (ventana != nullptr) {
-            if (ventana->fila == f1 && ventana->columna == c1) nodo1 = ventana;
-            if (ventana->fila == f2 && ventana->columna == c2) nodo2 = ventana;
-            ventana = ventana->siguiente;
-        }
-        if (nodo1 == nullptr || nodo2 == nullptr) return false;
-        int tmp = nodo1->valor; nodo1->valor = nodo2->valor; nodo2->valor = tmp;
-        return true;
-    }
-
-    /* sustituirValor(f, c, nv):
+    /* sustituirPorPosicion(f, c, nv):
      *   recorrer lista
      *   si nodo.(fila,col) == (f,c) -> nodo.valor = nv; return true
      *   return false */
-    bool sustituirValor(int f, int c, int nv) {
+    bool sustituirPorPosicion(int f, int c, int nv) {
         ventana = cabeza;
         while (ventana != nullptr) {
             if (ventana->fila == f && ventana->columna == c) {
@@ -159,7 +139,7 @@ public:
 };
 
 int main() {
-    int matrix[N][N] = {
+    int matrix[5][5] = {
         {0,0,5,1,0},
         {0,0,0,8,0},
         {0,0,0,0,0},
@@ -181,12 +161,8 @@ int main() {
     cout << "eliminarPorValor(8):\n";
     lista.imprimir();
 
-    lista.intercambiarPorPosicion(0, 2, 3, 0);
-    cout << "intercambiarPorPosicion(0,2, 3,0):\n";
-    lista.imprimir();
-
-    lista.sustituirValor(3, 0, 99);
-    cout << "sustituirValor(3,0, 99):\n";
+    lista.sustituirPorPosicion(0, 2, 99);
+    cout << "sustituirPorPosicion(0,2, 99):\n";
     lista.imprimir();
 
     return 0;

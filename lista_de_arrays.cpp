@@ -3,13 +3,11 @@
 #include <iostream>
 using namespace std;
 
-const int N = 5;
-
 struct Entrada { int columna, valor; };
 
 struct NodoFila {
     int fila;
-    Entrada entradas[N];
+    Entrada entradas[5];
     int count;
     NodoFila* siguiente;
 
@@ -132,12 +130,12 @@ public:
     }
 
     /* inicializar(m):
-     *   para f de 0 a N-1
-     *     para c de 0 a N-1
+     *   para f de 0 a 4
+     *     para c de 0 a 4
      *       si m[f][c] != 0 -> insertarOrdenado(m[f][c], f, c) */
-    void inicializar(int m[N][N]) {
-        for (int f = 0; f < N; f++)
-            for (int c = 0; c < N; c++)
+    void inicializar(int m[5][5]) {
+        for (int f = 0; f < 5; f++)
+            for (int c = 0; c < 5; c++)
                 if (m[f][c] != 0)
                     insertarOrdenado(m[f][c], f, c);
     }
@@ -189,32 +187,12 @@ public:
         return false;
     }
 
-    /* intercambiarPorPosicion(f1,c1, f2,c2):
-     *   nodo1=buscarFila(f1); nodo2=buscarFila(f2)
-     *   idx1=nodo1->buscarColumna(c1); idx2=nodo2->buscarColumna(c2)
-     *   si alguno null o -1 -> return false
-     *   tmp=nodo1->entradas[idx1].valor
-     *   nodo1->entradas[idx1].valor = nodo2->entradas[idx2].valor
-     *   nodo2->entradas[idx2].valor = tmp */
-    bool intercambiarPorPosicion(int f1, int c1, int f2, int c2) {
-        NodoFila* nodo1 = buscarFila(f1);
-        NodoFila* nodo2 = buscarFila(f2);
-        if (nodo1 == nullptr || nodo2 == nullptr) return false;
-        int idx1 = nodo1->buscarColumna(c1);
-        int idx2 = nodo2->buscarColumna(c2);
-        if (idx1 == -1 || idx2 == -1) return false;
-        int tmp = nodo1->entradas[idx1].valor;
-        nodo1->entradas[idx1].valor = nodo2->entradas[idx2].valor;
-        nodo2->entradas[idx2].valor = tmp;
-        return true;
-    }
-
-    /* sustituirValor(f, c, nv):
+    /* sustituirPorPosicion(f, c, nv):
      *   nodo = buscarFila(f)
      *   idx = nodo->buscarColumna(c)
      *   si null o -1 -> return false
      *   nodo->entradas[idx].valor = nv */
-    bool sustituirValor(int f, int c, int nv) {
+    bool sustituirPorPosicion(int f, int c, int nv) {
         NodoFila* nodo = buscarFila(f);
         if (nodo == nullptr) return false;
         int idx = nodo->buscarColumna(c);
@@ -236,7 +214,7 @@ public:
 };
 
 int main() {
-    int matrix[N][N] = {
+    int matrix[5][5] = {
         {0,0,5,1,0},
         {0,0,0,8,0},
         {0,0,0,0,0},
@@ -258,12 +236,8 @@ int main() {
     cout << "eliminarPorValor(8):\n";
     matriz.imprimir();
 
-    matriz.intercambiarPorPosicion(0, 2, 3, 0);
-    cout << "intercambiarPorPosicion(0,2, 3,0):\n";
-    matriz.imprimir();
-
-    matriz.sustituirValor(3, 0, 99);
-    cout << "sustituirValor(3,0, 99):\n";
+    matriz.sustituirPorPosicion(0, 2, 99);
+    cout << "sustituirPorPosicion(0,2, 99):\n";
     matriz.imprimir();
 
     return 0;
