@@ -1,81 +1,43 @@
-/*
- * Representacion de Matriz Dispersa - Lista de Arrays
- *
- * La estructura combina una lista enlazada de filas con arreglos dinamicos
- * de entradas por fila. Cada nodo de la lista representa una fila de la
- * matriz y contiene un arreglo de pares (columna, valor) para esa fila.
- *
- *   NodoFila -> [fila | entradas[] | siguiente]
- *                         |
- *                   {columna, valor}  {columna, valor} ...
- *
- * Las filas estan ordenadas de menor a mayor y, dentro de cada fila,
- * las entradas tambien estan ordenadas por columna.
- *
- * Operaciones:
- *   1. insertarOrdenado     - inserta en orden por (fila, columna)
- *   2. eliminarPorPosicion  - elimina el elemento en (fila, columna)
- *   3. eliminarPorValor     - elimina la primera ocurrencia del valor dado
- *   4. intercambiarPorPosicion - intercambia los valores de dos posiciones
- *   5. sustituirValor       - reemplaza el valor en (fila, columna)
- */
+// Matriz dispersa 5x5 - representacion por lista de arrays
 
 #include <iostream>
 using namespace std;
 
-/* Par (columna, valor) almacenado dentro de cada fila. */
-struct Entrada {
-    int columna;
-    int valor;
-};
+const int N = 5;
 
-/* Nodo de la lista: representa una fila completa. */
+struct Entrada { int columna, valor; };
+
 struct NodoFila {
     int fila;
-    Entrada* entradas; // arreglo dinamico de entradas
-    int count;         // entradas ocupadas
-    int capacidad;     // capacidad actual del arreglo
+    Entrada entradas[N];
+    int count;
     NodoFila* siguiente;
 
-    explicit NodoFila(int f, int cap = 4)
-        : fila(f), count(0), capacidad(cap), siguiente(nullptr) {
-        entradas = new Entrada[cap];
-    }
+    NodoFila(int f) : fila(f), count(0), siguiente(nullptr) {}
 
-    ~NodoFila() { delete[] entradas; }
-
-    /* Duplicar capacidad del arreglo interno.
-     * La nueva memoria se asigna antes de liberar la antigua; si 'new' lanza
-     * una excepcion el arreglo original no se ve afectado. Como Entrada solo
-     * contiene enteros, la copia nunca puede lanzar una excepcion. */
-    void ampliar() {
-        int nueva_cap = capacidad * 2;
-        Entrada* nuevo = new Entrada[nueva_cap]; // lanza bad_alloc si falla; entradas permanece valido
-        for (int i = 0; i < count; i++) nuevo[i] = entradas[i];
-        delete[] entradas;
-        entradas  = nuevo;
-        capacidad = nueva_cap;
-    }
-
-    /* Insertar entrada en orden por columna. Retorna false si ya existe. */
+    /* insertarEntrada(col, val):
+     *   si col ya existe -> return false
+     *   pos = count
+     *   para i de 0 a count-1: si entradas[i].columna > col -> pos=i; break
+     *   desplazar derecha desde pos
+     *   entradas[pos] = {col, val}; count++ */
     bool insertarEntrada(int col, int val) {
-        for (int i = 0; i < count; i++) {
-            if (entradas[i].columna == col) return false; // ya existe
-        }
-        if (count == capacidad) ampliar();
-        // Encontrar posicion de insercion
+        for (int i = 0; i < count; i++)
+            if (entradas[i].columna == col) return false;
         int pos = count;
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
             if (entradas[i].columna > col) { pos = i; break; }
-        }
-        // Desplazar a la derecha
         for (int i = count; i > pos; i--) entradas[i] = entradas[i - 1];
         entradas[pos] = {col, val};
         count++;
         return true;
     }
 
-    /* Eliminar la entrada con la columna dada. Retorna true si la elimino. */
+    /* eliminarEntrada(col):
+     *   para i de 0 a count-1
+     *     si entradas[i].columna == col
+     *       desplazar izquierda desde i; count--; return true
+     *   return false */
     bool eliminarEntrada(int col) {
         for (int i = 0; i < count; i++) {
             if (entradas[i].columna == col) {
@@ -87,19 +49,15 @@ struct NodoFila {
         return false;
     }
 
-    /* Busca el indice de la entrada con columna col. Retorna -1 si no existe. */
     int buscarColumna(int col) const {
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
             if (entradas[i].columna == col) return i;
-        }
         return -1;
     }
 
-    /* Busca el indice de la primera entrada con valor v. Retorna -1 si no existe. */
     int buscarValor(int v) const {
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
             if (entradas[i].valor == v) return i;
-        }
         return -1;
     }
 };
@@ -108,7 +66,10 @@ class ListaDeArrays {
 private:
     NodoFila* cabeza;
 
-    /* Busca el NodoFila con fila == f. Retorna nullptr si no existe. */
+    /* buscarFila(f):
+     *   recorrer lista
+     *   si nodo.fila==f -> return nodo
+     *   si nodo.fila > f -> return null */
     NodoFila* buscarFila(int f) const {
         NodoFila* actual = cabeza;
         while (actual != nullptr) {
@@ -119,18 +80,19 @@ private:
         return nullptr;
     }
 
-    /* Obtiene o crea el NodoFila para la fila f, insertando en orden. */
+    /* obtenerOCrearFila(f):
+     *   si cabeza==null o cabeza.fila>f -> insertar al inicio; return nuevo
+     *   buscar posicion donde siguiente.fila >= f
+     *   si ya existe -> return existente
+     *   crear e insertar nuevo nodo de fila */
     NodoFila* obtenerOCrearFila(int f) {
         if (cabeza == nullptr || cabeza->fila > f) {
             NodoFila* nuevo = new NodoFila(f);
-            nuevo->siguiente = cabeza;
-            cabeza = nuevo;
-            return nuevo;
+            nuevo->siguiente = cabeza; cabeza = nuevo; return nuevo;
         }
         NodoFila* actual = cabeza;
-        while (actual->siguiente != nullptr && actual->siguiente->fila < f) {
+        while (actual->siguiente != nullptr && actual->siguiente->fila < f)
             actual = actual->siguiente;
-        }
         if (actual->fila == f) return actual;
         if (actual->siguiente != nullptr && actual->siguiente->fila == f)
             return actual->siguiente;
@@ -140,14 +102,13 @@ private:
         return nuevo;
     }
 
-    /* Elimina el NodoFila para la fila f si esta vacia. */
+    /* eliminarFilaVacia(f):
+     *   si cabeza.fila==f y count==0 -> eliminar cabeza
+     *   sino recorrer hasta nodo con fila==f y count==0 -> desenlazar */
     void eliminarFilaVacia(int f) {
         if (cabeza == nullptr) return;
         if (cabeza->fila == f && cabeza->count == 0) {
-            NodoFila* temp = cabeza;
-            cabeza = cabeza->siguiente;
-            delete temp;
-            return;
+            NodoFila* temp = cabeza; cabeza = cabeza->siguiente; delete temp; return;
         }
         NodoFila* actual = cabeza;
         while (actual->siguiente != nullptr) {
@@ -166,23 +127,37 @@ public:
 
     ~ListaDeArrays() {
         while (cabeza != nullptr) {
-            NodoFila* temp = cabeza;
-            cabeza = cabeza->siguiente;
-            delete temp;
+            NodoFila* temp = cabeza; cabeza = cabeza->siguiente; delete temp;
         }
     }
 
-    /* 1. Insertar en orden por (fila, columna). */
+    /* inicializar(m):
+     *   para f de 0 a N-1
+     *     para c de 0 a N-1
+     *       si m[f][c] != 0 -> insertarOrdenado(m[f][c], f, c) */
+    void inicializar(int m[N][N]) {
+        for (int f = 0; f < N; f++)
+            for (int c = 0; c < N; c++)
+                if (m[f][c] != 0)
+                    insertarOrdenado(m[f][c], f, c);
+    }
+
+    /* insertarOrdenado(v, f, c):
+     *   nodoFila = obtenerOCrearFila(f)
+     *   ok = nodoFila->insertarEntrada(c, v)
+     *   si !ok y count==0 -> eliminarFilaVacia(f) */
     bool insertarOrdenado(int v, int f, int c) {
         NodoFila* nodoFila = obtenerOCrearFila(f);
         bool ok = nodoFila->insertarEntrada(c, v);
-        // Si se creo una fila nueva pero no se pudo insertar (caso improbable
-        // de columna duplicada en fila recien creada), se elimina el nodo vacio.
         if (!ok && nodoFila->count == 0) eliminarFilaVacia(f);
         return ok;
     }
 
-    /* 2. Eliminar el elemento en (f, c). Retorna true si lo elimino. */
+    /* eliminarPorPosicion(f, c):
+     *   nodo = buscarFila(f)
+     *   si null -> return false
+     *   ok = nodo->eliminarEntrada(c)
+     *   si ok y count==0 -> eliminarFilaVacia(f) */
     bool eliminarPorPosicion(int f, int c) {
         NodoFila* nodo = buscarFila(f);
         if (nodo == nullptr) return false;
@@ -191,7 +166,12 @@ public:
         return ok;
     }
 
-    /* 3. Eliminar la primera ocurrencia del valor v. Retorna true si lo elimino. */
+    /* eliminarPorValor(v):
+     *   recorrer lista de filas
+     *     idx = nodo->buscarValor(v)
+     *     si idx != -1 -> desplazar izquierda, count--
+     *       si count==0 -> eliminarFilaVacia; return true
+     *   return false */
     bool eliminarPorValor(int v) {
         NodoFila* actual = cabeza;
         while (actual != nullptr) {
@@ -209,7 +189,13 @@ public:
         return false;
     }
 
-    /* 4. Intercambiar los valores en (f1,c1) y (f2,c2). Retorna true si existen ambos. */
+    /* intercambiarPorPosicion(f1,c1, f2,c2):
+     *   nodo1=buscarFila(f1); nodo2=buscarFila(f2)
+     *   idx1=nodo1->buscarColumna(c1); idx2=nodo2->buscarColumna(c2)
+     *   si alguno null o -1 -> return false
+     *   tmp=nodo1->entradas[idx1].valor
+     *   nodo1->entradas[idx1].valor = nodo2->entradas[idx2].valor
+     *   nodo2->entradas[idx2].valor = tmp */
     bool intercambiarPorPosicion(int f1, int c1, int f2, int c2) {
         NodoFila* nodo1 = buscarFila(f1);
         NodoFila* nodo2 = buscarFila(f2);
@@ -217,64 +203,67 @@ public:
         int idx1 = nodo1->buscarColumna(c1);
         int idx2 = nodo2->buscarColumna(c2);
         if (idx1 == -1 || idx2 == -1) return false;
-        swap(nodo1->entradas[idx1].valor, nodo2->entradas[idx2].valor);
+        int tmp = nodo1->entradas[idx1].valor;
+        nodo1->entradas[idx1].valor = nodo2->entradas[idx2].valor;
+        nodo2->entradas[idx2].valor = tmp;
         return true;
     }
 
-    /* 5. Sustituir el valor en (f, c) por nuevo_valor. Retorna true si lo encontro. */
-    bool sustituirValor(int f, int c, int nuevo_valor) {
+    /* sustituirValor(f, c, nv):
+     *   nodo = buscarFila(f)
+     *   idx = nodo->buscarColumna(c)
+     *   si null o -1 -> return false
+     *   nodo->entradas[idx].valor = nv */
+    bool sustituirValor(int f, int c, int nv) {
         NodoFila* nodo = buscarFila(f);
         if (nodo == nullptr) return false;
         int idx = nodo->buscarColumna(c);
         if (idx == -1) return false;
-        nodo->entradas[idx].valor = nuevo_valor;
+        nodo->entradas[idx].valor = nv;
         return true;
     }
 
     void imprimir() const {
         NodoFila* actual = cabeza;
         while (actual != nullptr) {
-            for (int i = 0; i < actual->count; i++) {
-                cout << "(" << actual->fila << ", "
-                     << actual->entradas[i].columna
-                     << ") = " << actual->entradas[i].valor << "\n";
-            }
+            for (int i = 0; i < actual->count; i++)
+                cout << "(" << actual->fila << "," << actual->entradas[i].columna
+                     << ")=" << actual->entradas[i].valor << " ";
             actual = actual->siguiente;
         }
+        cout << "\n";
     }
 };
 
 int main() {
+    int matrix[N][N] = {
+        {0,0,5,1,0},
+        {0,0,0,8,0},
+        {0,0,0,0,0},
+        {1,0,0,0,0},
+        {0,0,0,0,0}
+    };
+
     ListaDeArrays matriz;
+    matriz.inicializar(matrix);
 
-    // Insertar valores en la matriz dispersa
-    matriz.insertarOrdenado(8, 0, 0);
-    matriz.insertarOrdenado(5, 0, 2);
-    matriz.insertarOrdenado(3, 1, 0);
-    matriz.insertarOrdenado(7, 2, 1);
-
-    cout << "Matriz original:\n";
+    cout << "Matriz inicial:\n";
     matriz.imprimir();
 
-    // Eliminar por posicion
-    matriz.eliminarPorPosicion(0, 2);
-    cout << "\nDespues de eliminar posicion (0,2):\n";
+    matriz.eliminarPorPosicion(0, 3);
+    cout << "eliminarPorPosicion(0,3):\n";
     matriz.imprimir();
 
-    // Eliminar por valor
-    matriz.eliminarPorValor(3);
-    cout << "\nDespues de eliminar valor 3:\n";
+    matriz.eliminarPorValor(8);
+    cout << "eliminarPorValor(8):\n";
     matriz.imprimir();
 
-    // Volver a insertar para demostrar intercambio
-    matriz.insertarOrdenado(3, 1, 0);
-    matriz.intercambiarPorPosicion(0, 0, 2, 1);
-    cout << "\nDespues de intercambiar (0,0) y (2,1):\n";
+    matriz.intercambiarPorPosicion(0, 2, 3, 0);
+    cout << "intercambiarPorPosicion(0,2, 3,0):\n";
     matriz.imprimir();
 
-    // Sustituir valor
-    matriz.sustituirValor(0, 0, 99);
-    cout << "\nDespues de sustituir (0,0) con 99:\n";
+    matriz.sustituirValor(3, 0, 99);
+    cout << "sustituirValor(3,0, 99):\n";
     matriz.imprimir();
 
     return 0;

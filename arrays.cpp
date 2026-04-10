@@ -1,26 +1,10 @@
-/*
- * Representacion de Matriz Dispersa - Arrays Paralelos
- *
- * Tres arreglos paralelos almacenan los elementos no cero:
- *   valores[]  - valor de cada elemento
- *   filas[]    - fila del elemento
- *   columnas[] - columna del elemento
- *   count      - cantidad actual de elementos no cero
- *
- * Los arreglos se mantienen ordenados por (fila, columna).
- *
- * Operaciones:
- *   1. insertarOrdenado     - inserta en orden por (fila, columna)
- *   2. eliminarPorPosicion  - elimina el elemento en (fila, columna)
- *   3. eliminarPorValor     - elimina la primera ocurrencia del valor dado
- *   4. intercambiarPorPosicion - intercambia los valores de dos posiciones
- *   5. sustituirValor       - reemplaza el valor en (fila, columna)
- */
+// Matriz dispersa 5x5 - representacion por arrays paralelos
 
 #include <iostream>
 using namespace std;
 
-const int MAX_NNZ = 100; // Maximo de elementos no cero permitidos
+const int N     = 5;
+const int MAX_NNZ = N * N;
 
 class MatrizArrays {
 private:
@@ -29,23 +13,29 @@ private:
     int columnas[MAX_NNZ];
     int count;
 
-    /* Busca el indice del elemento en (f, c). Retorna -1 si no existe. */
+    /* buscarPosicion(f, c):
+     *   para i de 0 a count-1
+     *     si filas[i]==f y columnas[i]==c -> return i
+     *   return -1 */
     int buscarPosicion(int f, int c) const {
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
             if (filas[i] == f && columnas[i] == c) return i;
-        }
         return -1;
     }
 
-    /* Busca el indice del primer elemento con valor v. Retorna -1 si no existe. */
+    /* buscarValor(v):
+     *   para i de 0 a count-1
+     *     si valores[i]==v -> return i
+     *   return -1 */
     int buscarValor(int v) const {
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
             if (valores[i] == v) return i;
-        }
         return -1;
     }
 
-    /* Desplaza los elementos desde 'desde' una posicion a la derecha. */
+    /* desplazarDerecha(desde):
+     *   para i de count hasta desde+1
+     *     valores[i]=valores[i-1]; filas[i]=filas[i-1]; columnas[i]=columnas[i-1] */
     void desplazarDerecha(int desde) {
         for (int i = count; i > desde; i--) {
             valores[i]  = valores[i - 1];
@@ -54,7 +44,9 @@ private:
         }
     }
 
-    /* Desplaza los elementos desde 'desde+1' una posicion a la izquierda. */
+    /* desplazarIzquierda(desde):
+     *   para i de desde a count-2
+     *     valores[i]=valores[i+1]; filas[i]=filas[i+1]; columnas[i]=columnas[i+1] */
     void desplazarIzquierda(int desde) {
         for (int i = desde; i < count - 1; i++) {
             valores[i]  = valores[i + 1];
@@ -66,30 +58,39 @@ private:
 public:
     MatrizArrays() : count(0) {}
 
-    /* 1. Insertar en orden ascendente por (fila, columna).
-     *    Retorna false si el arreglo esta lleno o la posicion ya existe. */
-    bool insertarOrdenado(int v, int f, int c) {
-        if (count >= MAX_NNZ) return false;
-        if (buscarPosicion(f, c) != -1) return false;
+    /* inicializar(m):
+     *   para f de 0 a N-1
+     *     para c de 0 a N-1
+     *       si m[f][c] != 0 -> insertarOrdenado(m[f][c], f, c) */
+    void inicializar(int m[N][N]) {
+        for (int f = 0; f < N; f++)
+            for (int c = 0; c < N; c++)
+                if (m[f][c] != 0)
+                    insertarOrdenado(m[f][c], f, c);
+    }
 
-        // Encontrar la posicion de insercion
+    /* insertarOrdenado(v, f, c):
+     *   si count >= MAX_NNZ o (f,c) ya existe -> return false
+     *   pos = count
+     *   para i de 0 a count-1: si (filas[i],col[i]) > (f,c) -> pos=i; break
+     *   desplazarDerecha(pos)
+     *   valores[pos]=v; filas[pos]=f; columnas[pos]=c; count++ */
+    bool insertarOrdenado(int v, int f, int c) {
+        if (count >= MAX_NNZ || buscarPosicion(f, c) != -1) return false;
         int pos = count;
         for (int i = 0; i < count; i++) {
-            if (filas[i] > f || (filas[i] == f && columnas[i] > c)) {
-                pos = i;
-                break;
-            }
+            if (filas[i] > f || (filas[i] == f && columnas[i] > c)) { pos = i; break; }
         }
-
         desplazarDerecha(pos);
-        valores[pos]  = v;
-        filas[pos]    = f;
-        columnas[pos] = c;
+        valores[pos] = v; filas[pos] = f; columnas[pos] = c;
         count++;
         return true;
     }
 
-    /* 2. Eliminar el elemento en la posicion (f, c). Retorna true si lo elimino. */
+    /* eliminarPorPosicion(f, c):
+     *   idx = buscarPosicion(f, c)
+     *   si idx == -1 -> return false
+     *   desplazarIzquierda(idx); count-- */
     bool eliminarPorPosicion(int f, int c) {
         int idx = buscarPosicion(f, c);
         if (idx == -1) return false;
@@ -98,7 +99,10 @@ public:
         return true;
     }
 
-    /* 3. Eliminar la primera ocurrencia del valor v. Retorna true si lo elimino. */
+    /* eliminarPorValor(v):
+     *   idx = buscarValor(v)
+     *   si idx == -1 -> return false
+     *   desplazarIzquierda(idx); count-- */
     bool eliminarPorValor(int v) {
         int idx = buscarValor(v);
         if (idx == -1) return false;
@@ -107,62 +111,65 @@ public:
         return true;
     }
 
-    /* 4. Intercambiar los valores en (f1,c1) y (f2,c2). Retorna true si existen ambos. */
+    /* intercambiarPorPosicion(f1,c1, f2,c2):
+     *   idx1 = buscarPosicion(f1,c1); idx2 = buscarPosicion(f2,c2)
+     *   si alguno == -1 -> return false
+     *   tmp=valores[idx1]; valores[idx1]=valores[idx2]; valores[idx2]=tmp */
     bool intercambiarPorPosicion(int f1, int c1, int f2, int c2) {
         int idx1 = buscarPosicion(f1, c1);
         int idx2 = buscarPosicion(f2, c2);
         if (idx1 == -1 || idx2 == -1) return false;
-        swap(valores[idx1], valores[idx2]);
+        int tmp = valores[idx1]; valores[idx1] = valores[idx2]; valores[idx2] = tmp;
         return true;
     }
 
-    /* 5. Sustituir el valor en (f, c) por nuevo_valor. Retorna true si lo encontro. */
-    bool sustituirValor(int f, int c, int nuevo_valor) {
+    /* sustituirValor(f, c, nv):
+     *   idx = buscarPosicion(f, c)
+     *   si idx == -1 -> return false
+     *   valores[idx] = nv */
+    bool sustituirValor(int f, int c, int nv) {
         int idx = buscarPosicion(f, c);
         if (idx == -1) return false;
-        valores[idx] = nuevo_valor;
+        valores[idx] = nv;
         return true;
     }
 
     void imprimir() const {
-        for (int i = 0; i < count; i++) {
-            cout << "(" << filas[i] << ", " << columnas[i]
-                 << ") = " << valores[i] << "\n";
-        }
+        for (int i = 0; i < count; i++)
+            cout << "(" << filas[i] << "," << columnas[i] << ")=" << valores[i] << " ";
+        cout << "\n";
     }
 };
 
 int main() {
+    int matrix[N][N] = {
+        {0,0,5,1,0},
+        {0,0,0,8,0},
+        {0,0,0,0,0},
+        {1,0,0,0,0},
+        {0,0,0,0,0}
+    };
+
     MatrizArrays matriz;
+    matriz.inicializar(matrix);
 
-    // Insertar valores en la matriz dispersa
-    matriz.insertarOrdenado(8, 0, 0);
-    matriz.insertarOrdenado(5, 0, 2);
-    matriz.insertarOrdenado(3, 1, 0);
-    matriz.insertarOrdenado(7, 2, 1);
-
-    cout << "Matriz original:\n";
+    cout << "Matriz inicial:\n";
     matriz.imprimir();
 
-    // Eliminar por posicion
-    matriz.eliminarPorPosicion(0, 2);
-    cout << "\nDespues de eliminar posicion (0,2):\n";
+    matriz.eliminarPorPosicion(0, 3);
+    cout << "eliminarPorPosicion(0,3):\n";
     matriz.imprimir();
 
-    // Eliminar por valor
-    matriz.eliminarPorValor(3);
-    cout << "\nDespues de eliminar valor 3:\n";
+    matriz.eliminarPorValor(8);
+    cout << "eliminarPorValor(8):\n";
     matriz.imprimir();
 
-    // Volver a insertar para demostrar intercambio
-    matriz.insertarOrdenado(3, 1, 0);
-    matriz.intercambiarPorPosicion(0, 0, 2, 1);
-    cout << "\nDespues de intercambiar (0,0) y (2,1):\n";
+    matriz.intercambiarPorPosicion(0, 2, 3, 0);
+    cout << "intercambiarPorPosicion(0,2, 3,0):\n";
     matriz.imprimir();
 
-    // Sustituir valor
-    matriz.sustituirValor(0, 0, 99);
-    cout << "\nDespues de sustituir (0,0) con 99:\n";
+    matriz.sustituirValor(3, 0, 99);
+    cout << "sustituirValor(3,0, 99):\n";
     matriz.imprimir();
 
     return 0;

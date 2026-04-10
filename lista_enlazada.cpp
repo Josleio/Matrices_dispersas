@@ -1,26 +1,13 @@
-/*
- * Representacion de Matriz Dispersa - Lista Enlazada
- *
- * Cada nodo almacena el valor, fila y columna de un elemento no cero.
- * La lista se mantiene ordenada por fila y, dentro de la misma fila, por columna.
- *
- * Operaciones:
- *   1. insertarOrdenado  - inserta en orden por (fila, columna)
- *   2. eliminarPorPosicion - elimina el nodo en (fila, columna)
- *   3. eliminarPorValor    - elimina el primer nodo con el valor dado
- *   4. intercambiarPorPosicion - intercambia los valores de dos posiciones
- *   5. sustituirValor      - reemplaza el valor en (fila, columna)
- */
+// Matriz dispersa 5x5 - representacion por lista enlazada
 
 #include <iostream>
 using namespace std;
 
-struct Nodo {
-    int valor;
-    int fila;
-    int columna;
-    Nodo* siguiente;
+const int N = 5;
 
+struct Nodo {
+    int valor, fila, columna;
+    Nodo* siguiente;
     Nodo(int v, int f, int c) : valor(v), fila(f), columna(c), siguiente(nullptr) {}
 };
 
@@ -33,6 +20,9 @@ public:
     Lista_enlazada() : cabeza(nullptr), ventana(nullptr) {}
 
     ~Lista_enlazada() {
+        /* ventana = cabeza
+         * mientras ventana != null
+         *   temp = ventana; ventana = ventana->sig; delete temp */
         while (cabeza != nullptr) {
             Nodo* temp = cabeza;
             cabeza = cabeza->siguiente;
@@ -40,7 +30,25 @@ public:
         }
     }
 
-    /* 1. Insertar en orden ascendente por (fila, columna). */
+    /* inicializar(m):
+     *   para f de 0 a N-1
+     *     para c de 0 a N-1
+     *       si m[f][c] != 0 -> insertarOrdenado(m[f][c], f, c) */
+    void inicializar(int m[N][N]) {
+        for (int f = 0; f < N; f++)
+            for (int c = 0; c < N; c++)
+                if (m[f][c] != 0)
+                    insertarOrdenado(m[f][c], f, c);
+    }
+
+    /* insertarOrdenado(v, f, c):
+     *   nuevo = Nodo(v, f, c)
+     *   si cabeza==null o (f,c) < (cabeza.fila, cabeza.columna)
+     *     nuevo->sig = cabeza; cabeza = nuevo; return
+     *   ventana = cabeza
+     *   mientras ventana->sig != null y (ventana->sig.fila,col) < (f,c)
+     *     ventana = ventana->sig
+     *   nuevo->sig = ventana->sig; ventana->sig = nuevo */
     void insertarOrdenado(int v, int f, int c) {
         Nodo* nuevo = new Nodo(v, f, c);
         if (cabeza == nullptr || f < cabeza->fila ||
@@ -49,25 +57,25 @@ public:
             cabeza = nuevo;
             return;
         }
-
         ventana = cabeza;
         while (ventana->siguiente != nullptr &&
                (ventana->siguiente->fila < f ||
-                (ventana->siguiente->fila == f && ventana->siguiente->columna < c))) {
+                (ventana->siguiente->fila == f && ventana->siguiente->columna < c)))
             ventana = ventana->siguiente;
-        }
         nuevo->siguiente = ventana->siguiente;
         ventana->siguiente = nuevo;
     }
 
-    /* 2. Eliminar el nodo en la posicion (f, c). Retorna true si lo elimino. */
+    /* eliminarPorPosicion(f, c):
+     *   si cabeza.(fila,col) == (f,c) -> eliminar cabeza; return true
+     *   ventana = cabeza
+     *   mientras ventana->sig != null
+     *     si ventana->sig.(fila,col) == (f,c) -> desenlazar; return true
+     *   return false */
     bool eliminarPorPosicion(int f, int c) {
         if (cabeza == nullptr) return false;
         if (cabeza->fila == f && cabeza->columna == c) {
-            Nodo* temp = cabeza;
-            cabeza = cabeza->siguiente;
-            delete temp;
-            return true;
+            Nodo* temp = cabeza; cabeza = cabeza->siguiente; delete temp; return true;
         }
         ventana = cabeza;
         while (ventana->siguiente != nullptr) {
@@ -82,14 +90,16 @@ public:
         return false;
     }
 
-    /* 3. Eliminar la primera ocurrencia del valor v. Retorna true si lo elimino. */
+    /* eliminarPorValor(v):
+     *   si cabeza.valor == v -> eliminar cabeza; return true
+     *   ventana = cabeza
+     *   mientras ventana->sig != null
+     *     si ventana->sig.valor == v -> desenlazar; return true
+     *   return false */
     bool eliminarPorValor(int v) {
         if (cabeza == nullptr) return false;
         if (cabeza->valor == v) {
-            Nodo* temp = cabeza;
-            cabeza = cabeza->siguiente;
-            delete temp;
-            return true;
+            Nodo* temp = cabeza; cabeza = cabeza->siguiente; delete temp; return true;
         }
         ventana = cabeza;
         while (ventana->siguiente != nullptr) {
@@ -104,10 +114,13 @@ public:
         return false;
     }
 
-    /* 4. Intercambiar los valores de los nodos en (f1,c1) y (f2,c2). */
+    /* intercambiarPorPosicion(f1,c1, f2,c2):
+     *   nodo1 = null; nodo2 = null
+     *   recorrer lista buscando (f1,c1) y (f2,c2)
+     *   si alguno es null -> return false
+     *   tmp = nodo1->valor; nodo1->valor = nodo2->valor; nodo2->valor = tmp */
     bool intercambiarPorPosicion(int f1, int c1, int f2, int c2) {
-        Nodo* nodo1 = nullptr;
-        Nodo* nodo2 = nullptr;
+        Nodo* nodo1 = nullptr; Nodo* nodo2 = nullptr;
         ventana = cabeza;
         while (ventana != nullptr) {
             if (ventana->fila == f1 && ventana->columna == c1) nodo1 = ventana;
@@ -115,17 +128,19 @@ public:
             ventana = ventana->siguiente;
         }
         if (nodo1 == nullptr || nodo2 == nullptr) return false;
-        swap(nodo1->valor, nodo2->valor);
+        int tmp = nodo1->valor; nodo1->valor = nodo2->valor; nodo2->valor = tmp;
         return true;
     }
 
-    /* 5. Sustituir el valor en (f, c) por nuevo_valor. Retorna true si lo encontro. */
-    bool sustituirValor(int f, int c, int nuevo_valor) {
+    /* sustituirValor(f, c, nv):
+     *   recorrer lista
+     *   si nodo.(fila,col) == (f,c) -> nodo.valor = nv; return true
+     *   return false */
+    bool sustituirValor(int f, int c, int nv) {
         ventana = cabeza;
         while (ventana != nullptr) {
             if (ventana->fila == f && ventana->columna == c) {
-                ventana->valor = nuevo_valor;
-                return true;
+                ventana->valor = nv; return true;
             }
             ventana = ventana->siguiente;
         }
@@ -135,44 +150,43 @@ public:
     void imprimir() const {
         Nodo* actual = cabeza;
         while (actual != nullptr) {
-            cout << "(" << actual->fila << ", " << actual->columna
-                 << ") = " << actual->valor << "\n";
+            cout << "(" << actual->fila << "," << actual->columna
+                 << ")=" << actual->valor << " ";
             actual = actual->siguiente;
         }
+        cout << "\n";
     }
 };
 
 int main() {
+    int matrix[N][N] = {
+        {0,0,5,1,0},
+        {0,0,0,8,0},
+        {0,0,0,0,0},
+        {1,0,0,0,0},
+        {0,0,0,0,0}
+    };
+
     Lista_enlazada lista;
+    lista.inicializar(matrix);
 
-    // Insertar valores en la matriz dispersa
-    lista.insertarOrdenado(8, 0, 0);
-    lista.insertarOrdenado(5, 0, 2);
-    lista.insertarOrdenado(3, 1, 0);
-    lista.insertarOrdenado(7, 2, 1);
-
-    cout << "Lista original:\n";
+    cout << "Lista inicial:\n";
     lista.imprimir();
 
-    // Eliminar por posicion
-    lista.eliminarPorPosicion(0, 2);
-    cout << "\nDespues de eliminar posicion (0,2):\n";
+    lista.eliminarPorPosicion(0, 3);
+    cout << "eliminarPorPosicion(0,3):\n";
     lista.imprimir();
 
-    // Eliminar por valor
-    lista.eliminarPorValor(3);
-    cout << "\nDespues de eliminar valor 3:\n";
+    lista.eliminarPorValor(8);
+    cout << "eliminarPorValor(8):\n";
     lista.imprimir();
 
-    // Volver a insertar para demostrar intercambio
-    lista.insertarOrdenado(3, 1, 0);
-    lista.intercambiarPorPosicion(0, 0, 2, 1);
-    cout << "\nDespues de intercambiar (0,0) y (2,1):\n";
+    lista.intercambiarPorPosicion(0, 2, 3, 0);
+    cout << "intercambiarPorPosicion(0,2, 3,0):\n";
     lista.imprimir();
 
-    // Sustituir valor
-    lista.sustituirValor(0, 0, 99);
-    cout << "\nDespues de sustituir (0,0) con 99:\n";
+    lista.sustituirValor(3, 0, 99);
+    cout << "sustituirValor(3,0, 99):\n";
     lista.imprimir();
 
     return 0;
