@@ -10,10 +10,6 @@ private:
     int ptr_fila[6];
     int nnz;
 
-    /* buscarIndice(f, c):
-     *   para k de ptr_fila[f] a ptr_fila[f+1]-1
-     *     si ind_col[k] == c -> return k
-     *   return -1 */
     int buscarIndice(int f, int c) const {
         if (f < 0 || f >= 5) return -1;
         for (int k = ptr_fila[f]; k < ptr_fila[f + 1]; k++)
@@ -21,31 +17,18 @@ private:
         return -1;
     }
 
-    /* buscarPorValor(v):
-     *   para k de 0 a nnz-1
-     *     si valores[k] == v -> return k
-     *   return -1 */
     int buscarPorValor(int v) const {
         for (int k = 0; k < nnz; k++)
             if (valores[k] == v) return k;
         return -1;
     }
 
-    /* filaDeIndice(k):
-     *   para f de 0 a 4
-     *     si ptr_fila[f] <= k < ptr_fila[f+1] -> return f
-     *   return -1 */
     int filaDeIndice(int k) const {
         for (int f = 0; f < 5; f++)
             if (k >= ptr_fila[f] && k < ptr_fila[f + 1]) return f;
         return -1;
     }
 
-    /* eliminarIndice(k):
-     *   fila = filaDeIndice(k)
-     *   para i de k a nnz-2: valores[i]=valores[i+1]; ind_col[i]=ind_col[i+1]
-     *   nnz--
-     *   para i de fila+1 a 5: ptr_fila[i]-- */
     void eliminarIndice(int k) {
         int fila = filaDeIndice(k);
         for (int i = k; i < nnz - 1; i++) {
@@ -61,13 +44,6 @@ public:
         for (int i = 0; i <= 5; i++) ptr_fila[i] = 0;
     }
 
-    /* inicializar(m):
-     *   ptr_fila[0] = 0
-     *   para f de 0 a 4
-     *     ptr_fila[f+1] = ptr_fila[f]
-     *     para c de 0 a 4
-     *       si m[f][c] != 0
-     *         valores[nnz]=m[f][c]; ind_col[nnz]=c; nnz++; ptr_fila[f+1]++ */
     void inicializar(int m[5][5]) {
         nnz = 0;
         ptr_fila[0] = 0;
@@ -84,13 +60,6 @@ public:
         }
     }
 
-    /* insertarOrdenado(v, f, c):
-     *   si nnz >= 25 o (f,c) ya existe -> return false
-     *   pos = ptr_fila[f+1]
-     *   para k de ptr_fila[f] a ptr_fila[f+1]-1: si ind_col[k]>c -> pos=k; break
-     *   desplazar derecha desde pos
-     *   valores[pos]=v; ind_col[pos]=c; nnz++
-     *   para i de f+1 a 5: ptr_fila[i]++ */
     bool insertarOrdenado(int v, int f, int c) {
         if (nnz >= 25 || buscarIndice(f, c) != -1) return false;
         int pos = ptr_fila[f + 1];
@@ -108,10 +77,6 @@ public:
         return true;
     }
 
-    /* eliminarPorPosicion(f, c):
-     *   k = buscarIndice(f, c)
-     *   si k == -1 -> return false
-     *   eliminarIndice(k) */
     bool eliminarPorPosicion(int f, int c) {
         int k = buscarIndice(f, c);
         if (k == -1) return false;
@@ -119,10 +84,6 @@ public:
         return true;
     }
 
-    /* eliminarPorValor(v):
-     *   k = buscarPorValor(v)
-     *   si k == -1 -> return false
-     *   eliminarIndice(k) */
     bool eliminarPorValor(int v) {
         int k = buscarPorValor(v);
         if (k == -1) return false;
@@ -130,10 +91,6 @@ public:
         return true;
     }
 
-    /* sustituirPorPosicion(f, c, nv):
-     *   k = buscarIndice(f, c)
-     *   si k == -1 -> return false
-     *   valores[k] = nv */
     bool sustituirPorPosicion(int f, int c, int nv) {
         int k = buscarIndice(f, c);
         if (k == -1) return false;
@@ -141,13 +98,6 @@ public:
         return true;
     }
 
-    /* sumar(B) -> R:
-     *   para f de 0 a 4
-     *     ia=ptr_fila[f], ib=B.ptr_fila[f]
-     *     mientras ia < ptr_fila[f+1] o ib < B.ptr_fila[f+1]
-     *       si col_a < col_b -> R.insertar(valores[ia], f, col_a); ia++
-     *       si col_b < col_a -> R.insertar(B.valores[ib], f, col_b); ib++
-     *       sino suma = valores[ia]+B.valores[ib]; si != 0 -> R.insertar(suma,...); ia++; ib++ */
     MatrizCSR sumar(const MatrizCSR& B) const {
         MatrizCSR R;
         for (int f = 0; f < 5; f++) {
@@ -168,9 +118,6 @@ public:
         return R;
     }
 
-    /* restar(B) -> R:
-     *   igual que sumar pero con diff = valores[ia] - B.valores[ib]
-     *   y para solo-B: insertar -B.valores[ib] */
     MatrizCSR restar(const MatrizCSR& B) const {
         MatrizCSR R;
         for (int f = 0; f < 5; f++) {
@@ -273,3 +220,71 @@ int main() {
 
     return 0;
 }
+
+/*
+ * PSEUDOCODIGO - CSR (Compressed Sparse Row) 5x5
+ *
+ * buscarIndice(f, c):
+ *   para k de ptr_fila[f] a ptr_fila[f+1]-1
+ *     si ind_col[k] == c -> return k
+ *   return -1
+ *
+ * buscarPorValor(v):
+ *   para k de 0 a nnz-1
+ *     si valores[k] == v -> return k
+ *   return -1
+ *
+ * filaDeIndice(k):
+ *   para f de 0 a 4
+ *     si ptr_fila[f] <= k < ptr_fila[f+1] -> return f
+ *   return -1
+ *
+ * eliminarIndice(k):
+ *   fila = filaDeIndice(k)
+ *   para i de k a nnz-2: valores[i]=valores[i+1]; ind_col[i]=ind_col[i+1]
+ *   nnz--
+ *   para i de fila+1 a 5: ptr_fila[i]--
+ *
+ * inicializar(m):
+ *   ptr_fila[0] = 0
+ *   para f de 0 a 4
+ *     ptr_fila[f+1] = ptr_fila[f]
+ *     para c de 0 a 4
+ *       si m[f][c] != 0
+ *         valores[nnz]=m[f][c]; ind_col[nnz]=c; nnz++; ptr_fila[f+1]++
+ *
+ * insertarOrdenado(v, f, c):
+ *   si nnz >= 25 o (f,c) ya existe -> return false
+ *   pos = ptr_fila[f+1]
+ *   para k de ptr_fila[f] a ptr_fila[f+1]-1: si ind_col[k]>c -> pos=k; break
+ *   desplazar derecha desde pos
+ *   valores[pos]=v; ind_col[pos]=c; nnz++
+ *   para i de f+1 a 5: ptr_fila[i]++
+ *
+ * eliminarPorPosicion(f, c):
+ *   k = buscarIndice(f, c)
+ *   si k == -1 -> return false
+ *   eliminarIndice(k)
+ *
+ * eliminarPorValor(v):
+ *   k = buscarPorValor(v)
+ *   si k == -1 -> return false
+ *   eliminarIndice(k)
+ *
+ * sustituirPorPosicion(f, c, nv):
+ *   k = buscarIndice(f, c)
+ *   si k == -1 -> return false
+ *   valores[k] = nv
+ *
+ * sumar(B) -> R:
+ *   para f de 0 a 4
+ *     ia=ptr_fila[f], ib=B.ptr_fila[f]
+ *     mientras ia < ptr_fila[f+1] o ib < B.ptr_fila[f+1]
+ *       si col_a < col_b -> R.insertar(valores[ia], f, col_a); ia++
+ *       si col_b < col_a -> R.insertar(B.valores[ib], f, col_b); ib++
+ *       sino suma = valores[ia]+B.valores[ib]; si != 0 -> R.insertar(suma,...); ia++; ib++
+ *
+ * restar(B) -> R:
+ *   igual que sumar pero con diff = valores[ia] - B.valores[ib]
+ *   y para solo-B: insertar -B.valores[ib]
+ */

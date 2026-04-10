@@ -13,12 +13,6 @@ struct NodoFila {
 
     NodoFila(int f) : fila(f), count(0), siguiente(nullptr) {}
 
-    /* insertarEntrada(col, val):
-     *   si col ya existe -> return false
-     *   pos = count
-     *   para i de 0 a count-1: si entradas[i].columna > col -> pos=i; break
-     *   desplazar derecha desde pos
-     *   entradas[pos] = {col, val}; count++ */
     bool insertarEntrada(int col, int val) {
         for (int i = 0; i < count; i++)
             if (entradas[i].columna == col) return false;
@@ -31,11 +25,6 @@ struct NodoFila {
         return true;
     }
 
-    /* eliminarEntrada(col):
-     *   para i de 0 a count-1
-     *     si entradas[i].columna == col
-     *       desplazar izquierda desde i; count--; return true
-     *   return false */
     bool eliminarEntrada(int col) {
         for (int i = 0; i < count; i++) {
             if (entradas[i].columna == col) {
@@ -64,10 +53,6 @@ class ListaDeArrays {
 private:
     NodoFila* cabeza;
 
-    /* buscarFila(f):
-     *   recorrer lista
-     *   si nodo.fila==f -> return nodo
-     *   si nodo.fila > f -> return null */
     NodoFila* buscarFila(int f) const {
         NodoFila* actual = cabeza;
         while (actual != nullptr) {
@@ -78,11 +63,6 @@ private:
         return nullptr;
     }
 
-    /* obtenerOCrearFila(f):
-     *   si cabeza==null o cabeza.fila>f -> insertar al inicio; return nuevo
-     *   buscar posicion donde siguiente.fila >= f
-     *   si ya existe -> return existente
-     *   crear e insertar nuevo nodo de fila */
     NodoFila* obtenerOCrearFila(int f) {
         if (cabeza == nullptr || cabeza->fila > f) {
             NodoFila* nuevo = new NodoFila(f);
@@ -100,9 +80,6 @@ private:
         return nuevo;
     }
 
-    /* eliminarFilaVacia(f):
-     *   si cabeza.fila==f y count==0 -> eliminar cabeza
-     *   sino recorrer hasta nodo con fila==f y count==0 -> desenlazar */
     void eliminarFilaVacia(int f) {
         if (cabeza == nullptr) return;
         if (cabeza->fila == f && cabeza->count == 0) {
@@ -129,10 +106,6 @@ public:
         }
     }
 
-    /* inicializar(m):
-     *   para f de 0 a 4
-     *     para c de 0 a 4
-     *       si m[f][c] != 0 -> insertarOrdenado(m[f][c], f, c) */
     void inicializar(int m[5][5]) {
         for (int f = 0; f < 5; f++)
             for (int c = 0; c < 5; c++)
@@ -140,10 +113,6 @@ public:
                     insertarOrdenado(m[f][c], f, c);
     }
 
-    /* insertarOrdenado(v, f, c):
-     *   nodoFila = obtenerOCrearFila(f)
-     *   ok = nodoFila->insertarEntrada(c, v)
-     *   si !ok y count==0 -> eliminarFilaVacia(f) */
     bool insertarOrdenado(int v, int f, int c) {
         NodoFila* nodoFila = obtenerOCrearFila(f);
         bool ok = nodoFila->insertarEntrada(c, v);
@@ -151,11 +120,6 @@ public:
         return ok;
     }
 
-    /* eliminarPorPosicion(f, c):
-     *   nodo = buscarFila(f)
-     *   si null -> return false
-     *   ok = nodo->eliminarEntrada(c)
-     *   si ok y count==0 -> eliminarFilaVacia(f) */
     bool eliminarPorPosicion(int f, int c) {
         NodoFila* nodo = buscarFila(f);
         if (nodo == nullptr) return false;
@@ -164,12 +128,6 @@ public:
         return ok;
     }
 
-    /* eliminarPorValor(v):
-     *   recorrer lista de filas
-     *     idx = nodo->buscarValor(v)
-     *     si idx != -1 -> desplazar izquierda, count--
-     *       si count==0 -> eliminarFilaVacia; return true
-     *   return false */
     bool eliminarPorValor(int v) {
         NodoFila* actual = cabeza;
         while (actual != nullptr) {
@@ -187,11 +145,6 @@ public:
         return false;
     }
 
-    /* sustituirPorPosicion(f, c, nv):
-     *   nodo = buscarFila(f)
-     *   idx = nodo->buscarColumna(c)
-     *   si null o -1 -> return false
-     *   nodo->entradas[idx].valor = nv */
     bool sustituirPorPosicion(int f, int c, int nv) {
         NodoFila* nodo = buscarFila(f);
         if (nodo == nullptr) return false;
@@ -242,3 +195,64 @@ int main() {
 
     return 0;
 }
+
+/*
+ * PSEUDOCODIGO - Lista de arrays dispersa 5x5
+ *
+ * NodoFila::insertarEntrada(col, val):
+ *   si col ya existe -> return false
+ *   pos = count
+ *   para i de 0 a count-1: si entradas[i].columna > col -> pos=i; break
+ *   desplazar derecha desde pos
+ *   entradas[pos] = {col, val}; count++
+ *
+ * NodoFila::eliminarEntrada(col):
+ *   para i de 0 a count-1
+ *     si entradas[i].columna == col
+ *       desplazar izquierda desde i; count--; return true
+ *   return false
+ *
+ * buscarFila(f):
+ *   recorrer lista
+ *   si nodo.fila==f -> return nodo
+ *   si nodo.fila > f -> return null
+ *
+ * obtenerOCrearFila(f):
+ *   si cabeza==null o cabeza.fila>f -> insertar al inicio; return nuevo
+ *   buscar posicion donde siguiente.fila >= f
+ *   si ya existe -> return existente
+ *   crear e insertar nuevo nodo de fila
+ *
+ * eliminarFilaVacia(f):
+ *   si cabeza.fila==f y count==0 -> eliminar cabeza
+ *   sino recorrer hasta nodo con fila==f y count==0 -> desenlazar
+ *
+ * inicializar(m):
+ *   para f de 0 a 4
+ *     para c de 0 a 4
+ *       si m[f][c] != 0 -> insertarOrdenado(m[f][c], f, c)
+ *
+ * insertarOrdenado(v, f, c):
+ *   nodoFila = obtenerOCrearFila(f)
+ *   ok = nodoFila->insertarEntrada(c, v)
+ *   si !ok y count==0 -> eliminarFilaVacia(f)
+ *
+ * eliminarPorPosicion(f, c):
+ *   nodo = buscarFila(f)
+ *   si null -> return false
+ *   ok = nodo->eliminarEntrada(c)
+ *   si ok y count==0 -> eliminarFilaVacia(f)
+ *
+ * eliminarPorValor(v):
+ *   recorrer lista de filas
+ *     idx = nodo->buscarValor(v)
+ *     si idx != -1 -> desplazar izquierda, count--
+ *       si count==0 -> eliminarFilaVacia; return true
+ *   return false
+ *
+ * sustituirPorPosicion(f, c, nv):
+ *   nodo = buscarFila(f)
+ *   idx = nodo->buscarColumna(c)
+ *   si null o -1 -> return false
+ *   nodo->entradas[idx].valor = nv
+ */

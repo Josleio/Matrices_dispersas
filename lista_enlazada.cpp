@@ -18,9 +18,6 @@ public:
     Lista_enlazada() : cabeza(nullptr), ventana(nullptr) {}
 
     ~Lista_enlazada() {
-        /* ventana = cabeza
-         * mientras ventana != null
-         *   temp = ventana; ventana = ventana->sig; delete temp */
         while (cabeza != nullptr) {
             Nodo* temp = cabeza;
             cabeza = cabeza->siguiente;
@@ -28,10 +25,6 @@ public:
         }
     }
 
-    /* inicializar(m):
-     *   para f de 0 a 4
-     *     para c de 0 a 4
-     *       si m[f][c] != 0 -> insertarOrdenado(m[f][c], f, c) */
     void inicializar(int m[5][5]) {
         for (int f = 0; f < 5; f++)
             for (int c = 0; c < 5; c++)
@@ -39,14 +32,6 @@ public:
                     insertarOrdenado(m[f][c], f, c);
     }
 
-    /* insertarOrdenado(v, f, c):
-     *   nuevo = Nodo(v, f, c)
-     *   si cabeza==null o (f,c) < (cabeza.fila, cabeza.columna)
-     *     nuevo->sig = cabeza; cabeza = nuevo; return
-     *   ventana = cabeza
-     *   mientras ventana->sig != null y (ventana->sig.fila,col) < (f,c)
-     *     ventana = ventana->sig
-     *   nuevo->sig = ventana->sig; ventana->sig = nuevo */
     void insertarOrdenado(int v, int f, int c) {
         Nodo* nuevo = new Nodo(v, f, c);
         if (cabeza == nullptr || f < cabeza->fila ||
@@ -64,12 +49,6 @@ public:
         ventana->siguiente = nuevo;
     }
 
-    /* eliminarPorPosicion(f, c):
-     *   si cabeza.(fila,col) == (f,c) -> eliminar cabeza; return true
-     *   ventana = cabeza
-     *   mientras ventana->sig != null
-     *     si ventana->sig.(fila,col) == (f,c) -> desenlazar; return true
-     *   return false */
     bool eliminarPorPosicion(int f, int c) {
         if (cabeza == nullptr) return false;
         if (cabeza->fila == f && cabeza->columna == c) {
@@ -88,12 +67,6 @@ public:
         return false;
     }
 
-    /* eliminarPorValor(v):
-     *   si cabeza.valor == v -> eliminar cabeza; return true
-     *   ventana = cabeza
-     *   mientras ventana->sig != null
-     *     si ventana->sig.valor == v -> desenlazar; return true
-     *   return false */
     bool eliminarPorValor(int v) {
         if (cabeza == nullptr) return false;
         if (cabeza->valor == v) {
@@ -112,10 +85,6 @@ public:
         return false;
     }
 
-    /* sustituirPorPosicion(f, c, nv):
-     *   recorrer lista
-     *   si nodo.(fila,col) == (f,c) -> nodo.valor = nv; return true
-     *   return false */
     bool sustituirPorPosicion(int f, int c, int nv) {
         ventana = cabeza;
         while (ventana != nullptr) {
@@ -167,3 +136,45 @@ int main() {
 
     return 0;
 }
+
+/*
+ * PSEUDOCODIGO - Lista enlazada dispersa 5x5
+ *
+ * ~Lista_enlazada():
+ *   ventana = cabeza
+ *   mientras ventana != null
+ *     temp = ventana; ventana = ventana->sig; delete temp
+ *
+ * inicializar(m):
+ *   para f de 0 a 4
+ *     para c de 0 a 4
+ *       si m[f][c] != 0 -> insertarOrdenado(m[f][c], f, c)
+ *
+ * insertarOrdenado(v, f, c):
+ *   nuevo = Nodo(v, f, c)
+ *   si cabeza==null o (f,c) < (cabeza.fila, cabeza.columna)
+ *     nuevo->sig = cabeza; cabeza = nuevo; return
+ *   ventana = cabeza
+ *   mientras ventana->sig != null y (ventana->sig.fila,col) < (f,c)
+ *     ventana = ventana->sig
+ *   nuevo->sig = ventana->sig; ventana->sig = nuevo
+ *
+ * eliminarPorPosicion(f, c):
+ *   si cabeza.(fila,col) == (f,c) -> eliminar cabeza; return true
+ *   ventana = cabeza
+ *   mientras ventana->sig != null
+ *     si ventana->sig.(fila,col) == (f,c) -> desenlazar; return true
+ *   return false
+ *
+ * eliminarPorValor(v):
+ *   si cabeza.valor == v -> eliminar cabeza; return true
+ *   ventana = cabeza
+ *   mientras ventana->sig != null
+ *     si ventana->sig.valor == v -> desenlazar; return true
+ *   return false
+ *
+ * sustituirPorPosicion(f, c, nv):
+ *   recorrer lista
+ *   si nodo.(fila,col) == (f,c) -> nodo.valor = nv; return true
+ *   return false
+ */
